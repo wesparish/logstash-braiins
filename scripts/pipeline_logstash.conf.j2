@@ -1,0 +1,22 @@
+input {
+  http_poller {
+    urls => {
+      {% for address_end in range(LAST_OCTET_START, LAST_OCTET_END) %}
+      target{{address_end}} => "http://{{IP_PREFIX}}{{address_end}}:4028/devs+stats+pools+summary+fanctrl"
+      {% endfor %}
+    }
+    request_timeout => 1
+    # Supports "cron", "every", "at" and "in" schedules by rufus scheduler
+    schedule => { cron => "* * * * * UTC"}
+    codec => "json"
+  }
+}
+
+output {
+  elasticsearch {
+    hosts => ["{{ES_HOST}}"]
+    manage_template => false
+    index => "asic-miners-%{+YYYY.MM.dd}"
+  }
+}
+
